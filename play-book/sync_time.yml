@@ -1,0 +1,32 @@
+---
+- name: Install time sync, set timezone, and synchronize time
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install chrony for time synchronization
+      apt:
+        name: chrony
+        state: present
+        update_cache: yes
+
+    - name: Enable and start chrony service
+      systemd:
+        name: chrony
+        enabled: yes
+        state: started
+
+    - name: Set timezone to America/Toronto
+      timezone:
+        name: "America/Toronto"
+
+    - name: Force time sync
+      command: chronyc -a makestep
+
+    - name: Verify the time is synchronized
+      command: timedatectl
+      register: time_status
+
+    - name: Display time sync status
+      debug:
+        msg: "{{ time_status.stdout_lines }}"
+
